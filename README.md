@@ -3,7 +3,7 @@
 A sleek, frameless desktop calendar widget built with Electron, React, Node.js, and MongoDB. Designed to stay neatly on your desktop with a transparent glass-morphism UI, providing seamless event management and real-time local notifications.
 ## Preview
 
-![Desktop Calendar Widget](screenshots/calendar.png)
+![Desktop Calendar Widget](calendar-app/screenshots/calendar.png)
 ## Features
 
 * **Frameless Transparent UI:** A compact, draggable widget with a modern glass-morphism effect (`backdrop-filter`).
