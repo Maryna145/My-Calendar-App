@@ -15,7 +15,7 @@ export const createEvent = async (req, res) => {
 
         res.status(201).json(newEvent);
     } catch (error) {
-        res.status(400).json({ message: 'Помилка при створенні події', error: error.message });
+        res.status(400).json({ message: 'Error while creating event', error: error.message });
     }
 };
 
@@ -25,7 +25,7 @@ export const getEvents = async (req, res) => {
         const events = await Event.find({});
         res.status(200).json(events);
     } catch (error) {
-        res.status(500).json({ message: 'Помилка при отриманні подій', error: error.message });
+        res.status(500).json({ message: 'Error while getting event', error: error.message });
     }
 };
 export const updateEvent = async (req, res) => {
@@ -33,11 +33,11 @@ export const updateEvent = async (req, res) => {
         const { id } = req.params;
         const updatedEvent = await Event.findByIdAndUpdate(id, req.body, { returnDocument: 'after' });
 
-        if (!updatedEvent) return res.status(404).json({ message: 'Подію не знайдено' });
+        if (!updatedEvent) return res.status(404).json({ message: 'Event is not found' });
 
         res.status(200).json(updatedEvent);
     } catch (error) {
-        res.status(400).json({ message: 'Помилка при оновленні події', error: error.message });
+        res.status(400).json({ message: 'Error while updating event', error: error.message });
     }
 };
 
@@ -46,10 +46,10 @@ export const deleteEvent = async (req, res) => {
         const { id } = req.params;
         const deletedEvent = await Event.findByIdAndDelete(id);
 
-        if (!deletedEvent) return res.status(404).json({ message: 'Подію не знайдено' });
+        if (!deletedEvent) return res.status(404).json({ message: 'Event is not found' });
 
-        res.status(200).json({ message: 'Подію успішно видалено' });
+        res.status(200).json({ message: 'Event is deleted succesfully' });
     } catch (error) {
-        res.status(400).json({ message: 'Помилка при видаленні події', error: error.message });
+        res.status(400).json({ message: 'Error while deleting event', error: error.message });
     }
 };

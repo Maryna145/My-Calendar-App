@@ -2,28 +2,28 @@ import mongoose from 'mongoose';
 
 const eventSchema = new mongoose.Schema({
     date: {
-        type: String, // Зберігатимемо дату, наприклад, у форматі "YYYY-MM-DD"
+        type: String,
         required: true,
     },
     time: {
-        type: String, // Час із твого інпуту, наприклад, "00:00"
+        type: String,
         required: true,
     },
     text: {
         type: String,
         required: true,
-        maxLength: 60, // Обмеження, яке вже є у твоєму textarea
+        maxLength: 60,
     },
     intervalStudy: {
         type: Boolean,
-        default: false, // Значення чекбоксу
+        default: false,
     },
     color: {
         type: String,
         default: "#00a3ff",
     },
 }, {
-    timestamps: true // Автоматично додасть поля створення та оновлення (createdAt, updatedAt)
+    timestamps: true
 });
 
 export default mongoose.model('Event', eventSchema);

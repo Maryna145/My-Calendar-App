@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from 'react';
 
 const CalendarApp = () => {
   const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -23,8 +23,8 @@ const CalendarApp = () => {
     '#10B981',
     '#25655d',
     '#00BFFF',
-    '#8B5CF6',
-    '#EC4899',
+    '#be5cf6',
+    '#ec48b8',
     '#F43F5E'
   ];
   const currentDate = new Date();
@@ -39,17 +39,54 @@ const CalendarApp = () => {
   const [eventColor, setEventColor] = useState("#00a3ff");
   const [intervalStudy, setIntervalStudy] = useState(false);
 
+  const notifiedEvents = useRef(new Set());
+
+  useEffect(() => {
+    if (Notification.permission !== 'granted') {
+      Notification.requestPermission();
+    }
+
+    const checkEvents = () => {
+      const now = new Date();
+      const currentHours = now.getHours().toString().padStart(2, '0');
+      const currentMinutes = now.getMinutes().toString().padStart(2, '0');
+      const currentTime = `${currentHours}:${currentMinutes}`;
+
+      const todayEvents = events.filter(
+          (event) =>
+              event.date.getDate() === now.getDate() &&
+              event.date.getMonth() === now.getMonth() &&
+              event.date.getFullYear() === now.getFullYear()
+      );
+
+      todayEvents.forEach((event) => {
+        if (event.time === currentTime && !notifiedEvents.current.has(event._id)) {
+
+          new Notification("Notifying!", {
+            body: event.text,
+          });
+          notifiedEvents.current.add(event._id);
+        }
+      });
+    };
+
+    const intervalId = setInterval(checkEvents, 60000);
+
+    checkEvents();
+
+    return () => clearInterval(intervalId);
+  }, [events]);
+
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const response = await fetch("http://localhost:5000/api/events");
         const data = await response.json();
 
-        // Перетворюємо дані з бази для React
         const formattedEvents = data.map((ev) => ({
           ...ev,
-          id: ev._id, // MongoDB автоматично створює поле _id
-          date: new Date(ev.date), // Перетворюємо рядок на об'єкт Date
+          id: ev._id,
+          date: new Date(ev.date),
         }));
 
         setEvents(formattedEvents);
@@ -88,8 +125,9 @@ const CalendarApp = () => {
   };
   const handleDayClick = (day) => {
     const clickedDate = new Date(currentYear, currentMonth, day);
-
     setSelectedDate(clickedDate);
+  };
+  const openAddEventPopup = () => {
     setShowEventPopup(true);
     setEventTime({ hours: "00", minutes: "00" });
     setEventText("");
@@ -116,7 +154,6 @@ const CalendarApp = () => {
       };
 
       try {
-        // Відправляємо оновлені дані на бекенд
         const response = await fetch(`http://localhost:5000/api/events/${editingEvent.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -125,14 +162,12 @@ const CalendarApp = () => {
 
         const savedUpdatedEvent = await response.json();
 
-        // Форматуємо отриману з бази подію для React
         const formattedUpdatedEvent = {
           ...savedUpdatedEvent,
           id: savedUpdatedEvent._id,
           date: new Date(savedUpdatedEvent.date)
         };
 
-        // Оновлюємо масив подій у стані
         const updatedEvents = events.map((event) =>
             event.id === editingEvent.id ? formattedUpdatedEvent : event
         );
@@ -240,6 +275,9 @@ const CalendarApp = () => {
 
   return (
     <div className="calendar-app">
+      <button className="close-widget-btn" onClick={() => window.close()}>
+        &times;
+      </button>
       <div className="calendar">
         <h1 className="heading">Calendar</h1>
         <div className="navigate-date">
@@ -287,6 +325,9 @@ const CalendarApp = () => {
         </div>
       </div>
       <div className="events">
+        <button className="add-new-event-btn" onClick={openAddEventPopup}>
+          + Add Event
+        </button>
         {showEventPopup && (
           <div className="event-popup">
             <div className="time-input">
@@ -309,16 +350,17 @@ const CalendarApp = () => {
                 value={eventTime.minutes}
                 onChange={handleTimeChange}
               />
+              <div className="interval-study">
+                <label>
+                  <input
+                      type="checkbox"
+                      checked={intervalStudy}
+                      onChange={(e) => setIntervalStudy(e.target.checked)}
+                  />
+                </label>
+              </div>
             </div>
-            <div className="interval-study">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={intervalStudy}
-                  onChange={(e) => setIntervalStudy(e.target.checked)}
-                />
-              </label>
-            </div>
+
             <textarea
               placeholder="Enter Event Text(Maximum 60 Characters)"
               value={eventText}
@@ -354,7 +396,14 @@ const CalendarApp = () => {
             </button>
           </div>
         )}
-        {events.map((event, index) => (
+        {events
+            .filter(
+                (event) =>
+                    event.date.getDate() === selectDate.getDate() &&
+                    event.date.getMonth() === selectDate.getMonth() &&
+                    event.date.getFullYear() === selectDate.getFullYear()
+            )
+            .map((event, index) => (
           <div
             className="event"
             key={index}
